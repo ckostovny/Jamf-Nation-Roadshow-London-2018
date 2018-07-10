@@ -25,9 +25,9 @@ done
 loggedInUser=$(python -c 'from SystemConfiguration import SCDynamicStoreCopyConsoleUser; import sys; username = (SCDynamicStoreCopyConsoleUser(None, None, None) or [None])[0]; username = [username,""][username in [u"loginwindow", None, u""]]; sys.stdout.write(username + "\n");')
 
 # Check for existing Hostname extension attribute in JSS - if it's not there, we'll ask for the name and role, otherwise, automation baby!
-
-jssHostName=$(curl -X GET "$4":8443/JSSResource/computers/serialnumber/"$serial"/subset/extension_attributes --user "$5":"$6" -H "accept: application/xml"| xpath '//extension_attribute[name="Hostname"' | awk -F'<value>|</value>' '{print $2}')
-jssUserRole=$(curl -X GET "$4":8443/JSSResource/computers/serialnumber/"$serial"/subset/extension_attributes --user "$5":"$6" -H "accept: application/xml"| xpath '//extension_attribute[name="Mac User Role"' | awk -F'<value>|</value>' '{print $2}')
+EAxml=$(curl "$4":443/JSSResource/computers/serialnumber/"$serial"/subset/extension_attributes -u "$5":"$6" -H "accept: application/xml")
+jssHostName=$(echo "$EAxml"| xpath '//extension_attribute[name="Hostname"' | awk -F'<value>|</value>' '{print $2}')
+jssUserRole=$(echo "$EAxml"| xpath '//extension_attribute[name="Mac User Role"' | awk -F'<value>|</value>' '{print $2}')
 
 if [[ "$jssHostName" == "" ]] || [[ "$jssUserRole" == "" ]]; then
 	sudo -u "$loggedInUser" defaults write menu.nomad.DEPNotify PathToPlistFile /var/tmp/
